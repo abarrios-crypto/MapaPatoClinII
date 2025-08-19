@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encuadre Interactivo - Patología Clínica II</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --color-primary: #1a5d1a; /* Verde biomédico oscuro */
+            --color-secondary: #4caf50; /* Verde biomédico medio */
+            --color-accent: #8bc34a; /* Verde biomédico claro */
+            --color-light: #e8f5e9;
+            --color-dark: #003300;
+            --color-text: #333;
+            --color-bg: #f5fff5;
+            --transition-speed: 0.3s;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, var(--color-light), var(--color-bg));
+            color: var(--color-text);
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: var(--color-primary);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--color-dark);
+        }
+
+        /* --- Información del Curso --- */
+        #course-info {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        #course-info h2 {
+            color: var(--color-primary);
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--color-accent);
+            padding-bottom: 5px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            background-color: var(--color-light);
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .info-item strong {
+            color: var(--color-primary);
+        }
+
+        .competence, .evaluation {
+            margin-bottom: 15px;
+        }
+
+        .evaluation ul {
+            padding-left: 20px;
+        }
+
+        .evaluation li {
+            margin-bottom: 5px;
+        }
+
+        /* --- Tablero de Progreso --- */
+        #progress-board {
+            position: relative;
+            min-height: 500px;
+            margin-bottom: 40px;
+        }
+
+        /* --- Espiral para PC --- */
+        #spiral-container {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+
+        .spiral {
+            position: relative;
+            width: 500px;
+            height: 500px;
+        }
+
+        .spiral-step {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background-color: white;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+            border: 2px solid var(--color-secondary);
+        }
+
+        .spiral-step.locked {
+            opacity: 0.5;
+            filter: grayscale(100%);
+            cursor: not-allowed;
+        }
+
+        .spiral-step.visited {
+            background-color: #d5f5d5; /* Verde muy claro para indicar visitado */
+            border-color: var(--color-accent);
+        }
+
+        .spiral-step.active {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px var(--color-accent);
+            z-index: 10;
+            background-color: var(--color-light);
+            border-color: var(--color-primary);
+        }
+
+        .spiral-step:hover:not(.locked) {
+            transform: scale(1.05);
+            background-color: var(--color-light);
+        }
+
+        .spiral-step i {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            color: var(--color-primary);
+        }
+
+        .spiral-step .label {
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .spiral-step .sub {
+            font-size: 0.7rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+        }
+
+        /* --- Camino Vertical para Móviles --- */
+        #path-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .path-step {
+            width: 90%;
+            max-width: 300px;
+            height: 80px;
+            background-color: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin: 10px 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+            border: 2px solid var(--color-secondary);
+        }
+
+        .path-step.locked {
+            opacity: 0.5;
+            filter: grayscale(100%);
+            cursor: not-allowed;
+        }
+
+        .path-step.visited {
+            background-color: #d5f5d5; /* Verde muy claro para indicar visitado */
+            border-color: var(--color-accent);
+        }
+
+        .path-step.active {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px var(--color-accent);
+            z-index: 10;
+            background-color: var(--color-light);
+            border-color: var(--color-primary);
+        }
+
+        .path-step:hover:not(.locked) {
+            transform: scale(1.02);
+            background-color: var(--color-light);
+        }
+
+        .path-step i {
+            font-size: 2rem;
+            margin-right: 15px;
+            color: var(--color-primary);
+        }
+
+        .path-step-content {
+            flex-grow: 1;
+        }
+
+        .path-step .label {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .path-step .sub {
+            font-size: 0.9rem;
+        }
+
+        /* --- Modal --- */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 700px;
+            border-radius: 10px;
+            position: relative;
+            animation: modalopen 0.4s;
+        }
+
+        @keyframes modalopen {
+            from {opacity: 0; transform: translateY(-60px);}
+            to {opacity: 1; transform: translateY(0);}
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: absolute;
+            top: 10px;
+            right: 15px;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .modal-header h2 {
+            color: var(--color-primary);
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .modal-body ul {
+            padding-left: 20px;
+        }
+
+        .modal-body li {
+            margin-bottom: 8px;
+        }
+
+        .modal-footer {
+            text-align: right;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color var(--transition-speed);
+        }
+
+        .btn-primary {
+            background-color: var(--color-secondary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--color-primary);
+        }
+
+        .btn-secondary {
+            background-color: #ccc;
+            color: black;
+            margin-right: 10px;
+        }
+
+        .btn-secondary:hover {
+            background-color: #999;
+        }
+
+        /* --- Contrato --- */
+        #contract-section {
+            display: none;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        #contract-form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #contract-form label {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        #contract-form input, #contract-form select {
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        #contract-form input[type="checkbox"] {
+            width: auto;
+        }
+
+        #signature-pad {
+            margin-top: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        #signature-pad canvas {
+            width: 100%;
+            max-width: 400px;
+            height: 120px;
+            cursor: crosshair;
+        }
+
+        .signature-buttons {
+            margin-top: 10px;
+        }
+
+        .signature-buttons button {
+            margin-right: 10px;
+        }
+
+        #contract-preview {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px dashed #ccc;
+            background-color: #fafafa;
+            display: none;
+        }
+
+        #contract-text {
+            white-space: pre-line;
+            line-height: 1.8;
+        }
+
+        #contract-signature {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        #contract-signature img {
+            max-width: 300px;
+            border-bottom: 1px solid black;
+        }
+
+        /* --- Responsive --- */
+        @media (min-width: 768px) {
+            #spiral-container {
+                display: flex;
+            }
+        }
+
+        @media (max-width: 767px) {
+            #path-container {
+                display: flex;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>PATOLOGÍA CLÍNICA II</h1>
+            <p class="subtitle">Encuadre Interactivo - Noveno Semestre</p>
+        </header>
+
+        <!-- Información del Curso -->
+        <div id="course-info">
+            <h2><i class="fas fa-graduation-cap"></i> Información de la Unidad de Aprendizaje</h2>
+            
+            <div class="info-grid">
+                <div class="info-item">
+                    <strong>Clave:</strong> 9175
+                </div>
+                <div class="info-item">
+                    <strong>Ubicación:</strong> Noveno semestre
+                </div>
+                <div class="info-item">
+                    <strong>Horas Teóricas:</strong> 96
+                </div>
+                <div class="info-item">
+                    <strong>Horas Prácticas:</strong> 32
+                </div>
+                <div class="info-item">
+                    <strong>Estudio Independiente:</strong> 32
+                </div>
+                <div class="info-item">
+                    <strong>Total de Horas:</strong> 160
+                </div>
+                <div class="info-item">
+                    <strong>Créditos:</strong> 10
+                </div>
+            </div>
+
+            <div class="competence">
+                <h3><i class="fas fa-bullseye"></i> Competencia del Curso</h3>
+                <p>El alumno analiza, evalúa y aplica de manera crítica y multidisciplinaria los fundamentos de la patología clínica en el diagnóstico y pronóstico de una variedad de enfermedades, incluyendo procesos inflamatorios, neoplásicos e infecciosos, integrando conocimientos de bioquímica, fisiología, inmunología y hematología. Además, desarrolla habilidades prácticas a través de la realización de técnicas de laboratorio, así como el diagnóstico de enfermedades mediante la interpretación de datos clínicos.</p>
+            </div>
+
+            <div class="evaluation">
+                <h3><i class="fas fa-chart-bar"></i> Criterios de Evaluación</h3>
+                <h4>Parcial:</h4>
+                <ul>
+                    <li>Actividades: 30%</li>
+                    <li>Prácticas de laboratorio: 20%</li>
+                    <li>Examen práctico: 25%</li>
+                    <li>Proyecto final: 25%</li>
+                </ul>
+                <h4>Final:</h4>
+                <ul>
+                    <li>Actividad integradora teórico-práctica: 50%</li>
+                </ul>
+            </div>
+
+            <div class="related">
+                <h3><i class="fas fa-link"></i> Unidades de Aprendizaje Relacionadas</h3>
+                <p>Morfofisiología, Bioquímica, Inmunología Básica y Aplicada y Hematología</p>
+            </div>
+        </div>
+
+        <div id="progress-board">
+            <div id="spiral-container">
+                <div class="spiral" id="spiral"></div>
+            </div>
+            <div id="path-container"></div>
+        </div>
+
+        <!-- Modales para cada tema -->
+        <div id="modals-container"></div>
+
+        <!-- Sección del Contrato -->
+        <div id="contract-section">
+            <h2>🖋️ Contrato de Compromiso</h2>
+            <form id="contract-form">
+                <label for="student-name">Nombre Completo *</label>
+                <input type="text" id="student-name" required>
+
+                <label for="student-id">Matrícula</label>
+                <input type="text" id="student-id">
+
+                <label for="student-group">Grado y Grupo *</label>
+                <select id="student-group" required>
+                    <option value="">Seleccionar...</option>
+                    <option value="9°A">9°A</option>
+                    <option value="9°B">9°B</option>
+                </select>
+
+                <label>
+                    <input type="checkbox" id="accept-terms" required>
+                    Acepto los términos y condiciones del curso.
+                </label>
+
+                <label>Firma *</label>
+                <div id="signature-pad">
+                    <canvas id="signature-canvas" width="400" height="120"></canvas>
+                </div>
+                <div class="signature-buttons">
+                    <button type="button" class="btn btn-secondary" id="clear-signature">Borrar firma</button>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="margin-top: 20px;">Generar Contrato</button>
+            </form>
+
+            <div id="contract-preview">
+                <h3>Contrato Generado</h3>
+                <div id="contract-text"></div>
+                <div id="contract-signature"></div>
+                <button class="btn btn-primary" id="print-contract" style="margin-top: 20px;">🖨️ Imprimir Contrato</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Iframe for Printing -->
+    <iframe id="print-frame" style="display: none;"></iframe>
+
+    <script>
+        // --- DATOS DEL PROGRAMA ---
+        const courseData = {
+            name: "PATOLOGÍA CLÍNICA II",
+            clave: "9175",
+            ubicacion: "Noveno semestre",
+            horas: {
+                teoricas: 96,
+                practicas: 32,
+                estudio_independiente: 32,
+                total: 160,
+                creditos: 10
+            },
+            competencia: "El alumno analiza, evalúa y aplica de manera crítica y multidisciplinaria los fundamentos de la patología clínica en el diagnóstico y pronóstico de una variedad de enfermedades, incluyendo procesos inflamatorios, neoplásicos e infecciosos, integrando conocimientos de bioquímica, fisiología, inmunología y hematología. Además, desarrolla habilidades prácticas a través de la realización de técnicas de laboratorio, así como el diagnóstico de enfermedades mediante la interpretación de datos clínicos.",
+            unidades_relacionadas: ["Morfofisiología", "Bioquímica", "Inmunología Básica y Aplicada", "Hematología"]
+        };
+
+        const evaluationData = {
+            parcial: [
+                {item: "Actividades", porcentaje: "30%"},
+                {item: "Prácticas de laboratorio", porcentaje: "20%"},
+                {item: "Examen práctico", porcentaje: "25%"},
+                {item: "Proyecto final", porcentaje: "25%"}
+            ],
+            final: [
+                {item: "Actividad integradora teórico-práctica", porcentaje: "50%"}
+            ]
+        };
+
+        // --- ESTRUCTURA DE UNIDADES Y TEMAS ---
+        const topics = [
+            { id: "unidad1", label: "Unidad I", sub: "Introducción a la Patología Clínica II", type: "unit", icon: "fa-book" },
+            { id: "I1", label: "I.1", sub: "Alcance y Aplicaciones", type: "normal", icon: "fa-microscope" },
+            { id: "I2", label: "I.2", sub: "Patogénesis y Conceptos", type: "normal", icon: "fa-dna" },
+            { id: "unidad2", label: "Unidad II", sub: "Estudio Básico de la Sangre", type: "unit", icon: "fa-book" },
+            { id: "II1", label: "II.1", sub: "Composición y Hematopoyesis", type: "normal", icon: "fa-tint" },
+            { id: "II2", label: "II.2", sub: "Alteraciones y Hemograma", type: "normal", icon: "fa-file-medical" },
+            { id: "unidad3", label: "Unidad III", sub: "Banco de Sangre", type: "unit", icon: "fa-book" },
+            { id: "III1", label: "III.1", sub: "Donación y Transfusión", type: "normal", icon: "fa-heart" },
+            { id: "III2", label: "III.2", sub: "Reacciones y Conservación", type: "normal", icon: "fa-vial" },
+            { id: "unidad4", label: "Unidad IV", sub: "Valoración Metabólica", type: "unit", icon: "fa-book" },
+            { id: "IV1", label: "IV.1", sub: "Metabolismo y Marcadores", type: "normal", icon: "fa-fire" },
+            { id: "IV2", label: "IV.2", sub: "Perfiles Metabólicos", type: "normal", icon: "fa-chart-line" },
+            { id: "unidad5", label: "Unidad V", sub: "Valoración Renal", type: "unit", icon: "fa-book" },
+            { id: "V1", label: "V.1", sub: "Fisiología Renal", type: "normal", icon: "fa-kidneys" },
+            { id: "V2", label: "V.2", sub: "Enfermedades Renales", type: "normal", icon: "fa-procedures" },
+            { id: "unidad6", label: "Unidad VI", sub: "Valoración Hepática", type: "unit", icon: "fa-book" },
+            { id: "VI1", label: "VI.1", sub: "Fisiología Hepática", type: "normal", icon: "fa-liver" },
+            { id: "VI2", label: "VI.2", sub: "Hepatopatías", type: "normal", icon: "fa-virus" },
+            { id: "unidad7", label: "Unidad VII", sub: "Equilibrio Ácido-Base", type: "unit", icon: "fa-book" },
+            { id: "VII1", label: "VII.1", sub: "Fisiología Ácido-Base", type: "normal", icon: "fa-balance-scale" },
+            { id: "VII2", label: "VII.2", sub: "Acidosis y Alcalosis", type: "normal", icon: "fa-flask" },
+            { id: "META", label: "META", sub: "Contrato de Compromiso", type: "meta", icon: "fa-flag-checkered" }
+        ];
+
+        // --- CONTENIDO DE LOS MODALES ---
+        const modalContents = {
+            "unidad1": {
+                title: "Unidad I: Introducción a la Patología Clínica II",
+                content: [
+                    "a) Alcance de la patología clínica en la biomedicina",
+                    "b) Aplicaciones prácticas de la etiología y factores de riesgo en la investigación biomédica",
+                    "c) Patogénesis: fundamentos lesionales y fisiopatológicos",
+                    "d) Conceptos de síntoma, signo, síndrome y otros.",
+                    "e) Medicina basada en la evidencia."
+                ]
+            },
+            "I1": {
+                title: "I.1 Alcance y Aplicaciones",
+                content: [
+                    "a) Definir el campo de acción de la patología clínica en el contexto de la biomedicina.",
+                    "b) Identificar las aplicaciones prácticas de la etiología y los factores de riesgo en la investigación biomédica.",
+                    "c) Analizar casos donde el conocimiento de la patología clínica es fundamental."
+                ]
+            },
+            "I2": {
+                title: "I.2 Patogénesis y Conceptos",
+                content: [
+                    "a) Explicar los fundamentos lesionales y fisiopatológicos de la patogénesis.",
+                    "b) Diferenciar entre los conceptos de síntoma, signo, síndrome, enfermedad y otros términos claves.",
+                    "c) Aplicar el concepto de medicina basada en la evidencia en la toma de decisiones diagnósticas."
+                ]
+            },
+            "unidad2": {
+                title: "Unidad II: Estudio Básico de la Sangre",
+                content: [
+                    "a) Composición de la sangre.",
+                    "b) Hematopoyesis y funciones de los diferentes tipos celulares.",
+                    "c) Alteraciones hematológicas más comunes.",
+                    "d) Interpretación de los resultados de un hemograma.",
+                    "e) Pruebas específicas en hematología."
+                ]
+            },
+            "II1": {
+                title: "II.1 Composición y Hematopoyesis",
+                content: [
+                    "a) Describir la composición general de la sangre (plasma, células formes).",
+                    "b) Explicar el proceso de hematopoyesis y la función de las células madre.",
+                    "c) Detallar las funciones principales de los eritrocitos, leucocitos y plaquetas."
+                ]
+            },
+            "II2": {
+                title: "II.2 Alteraciones y Hemograma",
+                content: [
+                    "a) Reconocer las alteraciones hematológicas más comunes (anemias, leucemias, trastornos plaquetarios).",
+                    "b) Interpretar los componentes principales de un hemograma completo.",
+                    "c) Relacionar los resultados de pruebas hematológicas específicas con condiciones clínicas."
+                ]
+            },
+            "unidad3": {
+                title: "Unidad III: Banco de Sangre y Medicina Transfusional",
+                content: [
+                    "a) Principios de la donación de sangre.",
+                    "b) Tipos de transfusiones y sus indicaciones.",
+                    "c) Reacciones transfusionales.",
+                    "d) Conservación y manejo de hemoderivados.",
+                    "e) Tendencias en investigación en la Medicina Tranfusional."
+                ]
+            },
+            "III1": {
+                title: "III.1 Donación y Transfusión",
+                content: [
+                    "a) Exponer los principios generales y los criterios para la donación de sangre.",
+                    "b) Clasificar los diferentes tipos de transfusiones y sus indicaciones clínicas.",
+                    "c) Evaluar la importancia de la compatibilidad sanguínea."
+                ]
+            },
+            "III2": {
+                title: "III.2 Reacciones y Conservación",
+                content: [
+                    "a) Identificar los tipos de reacciones transfusionales y sus causas.",
+                    "b) Describir los métodos de conservación y manejo de hemoderivados.",
+                    "c) Discutir las tendencias actuales en la investigación de la medicina transfusional."
+                ]
+            },
+            "unidad4": {
+                title: "Unidad IV: Valoración Metabólica Básica",
+                content: [
+                    "a) Puntos claves del metabolismo de carbohidratos, lípidos y proteínas.",
+                    "b) Marcadores bioquímicos.",
+                    "c) Interpretación de perfiles metabólicos."
+                ]
+            },
+            "IV1": {
+                title: "IV.1 Metabolismo y Marcadores",
+                content: [
+                    "a) Resumir los puntos clave del metabolismo de carbohidratos, lípidos y proteínas.",
+                    "b) Identificar los principales marcadores bioquímicos utilizados en la evaluación metabólica.",
+                    "c) Relacionar alteraciones metabólicas con sus marcadores correspondientes."
+                ]
+            },
+            "IV2": {
+                title: "IV.2 Perfiles Metabólicos",
+                content: [
+                    "a) Interpretar perfiles metabólicos básicos.",
+                    "b) Correlacionar los resultados de los perfiles con posibles trastornos metabólicos.",
+                    "c) Aplicar el conocimiento de perfiles metabólicos en un contexto clínico."
+                ]
+            },
+            "unidad5": {
+                title: "Unidad V: Valoración Renal Básica",
+                content: [
+                    "a) Fisiología renal básica",
+                    "b) Alteraciones renales y marcadores de función renal.",
+                    "c) Enfermedades renales más frecuentes."
+                ]
+            },
+            "V1": {
+                title: "V.1 Fisiología Renal",
+                content: [
+                    "a) Describir los procesos fisiológicos fundamentales del riñón (filtración, reabsorción, secreción).",
+                    "b) Identificar los principales marcadores de función renal (creatinina, urea, electrolitos).",
+                    "c) Explicar cómo se regulan el equilibrio hídrico y electrolítico."
+                ]
+            },
+            "V2": {
+                title: "V.2 Enfermedades Renales",
+                content: [
+                    "a) Reconocer las alteraciones renales más comunes y sus manifestaciones clínicas.",
+                    "b) Analizar las causas y consecuencias de las enfermedades renales frecuentes.",
+                    "c) Interpretar los resultados de laboratorio en el contexto de enfermedades renales."
+                ]
+            },
+            "unidad6": {
+                title: "Unidad VI: Valoración Hepática Básica",
+                content: [
+                    "a) Fisiología hepática básica",
+                    "b) Pruebas hepáticas y su interpretación.",
+                    "c) Hepatopatías más comunes."
+                ]
+            },
+            "VI1": {
+                title: "VI.1 Fisiología Hepática",
+                content: [
+                    "a) Explicar las funciones principales del hígado (metabolismo, detoxificación, síntesis de proteínas).",
+                    "b) Describir las pruebas hepáticas estándar (TGP, TGO, bilirrubina, albúmina).",
+                    "c) Interpretar los resultados de las pruebas hepáticas en función de la fisiología hepática."
+                ]
+            },
+            "VI2": {
+                title: "VI.2 Hepatopatías",
+                content: [
+                    "a) Enumerar las hepatopatías más comunes (hepatitis, cirrosis, esteatosis).",
+                    "b) Relacionar las alteraciones hepáticas con sus marcadores bioquímicos.",
+                    "c) Discutir el impacto de las hepatopatías en la homeostasis general."
+                ]
+            },
+            "unidad7": {
+                title: "Unidad VII: Evaluación del Equilibrio Ácido-Base",
+                content: [
+                    "a) Fisiología ácido-base.",
+                    "b) Acidosis y alcalosis.",
+                    "c) Interpretación de gases arteriales."
+                ]
+            },
+            "VII1": {
+                title: "VII.1 Fisiología Ácido-Base",
+                content: [
+                    "a) Describir los mecanismos fisiológicos que regulan el equilibrio ácido-base (pulmonar, renal, tampón).",
+                    "b) Definir pH, pCO2 y HCO3- y su relación en el equilibrio.",
+                    "c) Explicar la importancia del equilibrio ácido-base para la función celular."
+                ]
+            },
+            "VII2": {
+                title: "VII.2 Acidosis y Alcalosis",
+                content: [
+                    "a) Diferenciar entre acidosis y alcalosis metabólicas y respiratorias.",
+                    "b) Interpretar los resultados de un análisis de gases arteriales.",
+                    "c) Relacionar los desequilibrios ácido-base con trastornos patológicos."
+                ]
+            },
+            "META": {
+                title: "META: Contrato de Compromiso",
+                content: [
+                    "¡Felicidades! Has llegado al final del encuadre interactivo.",
+                    "Ahora es momento de formalizar tu compromiso con el curso.",
+                    "Por favor, completa el formulario y firma el contrato para continuar."
+                ]
+            }
+        };
+
+        // --- VARIABLES GLOBALES ---
+        let currentStepIndex = 0;
+        let unlockedSteps = [0]; // El primer paso siempre está desbloqueado
+        let visitedSteps = []; // Para llevar un registro de los pasos visitados
+        let signaturePad;
+        let signatureDataUrl = null;
+
+        // --- FUNCIONES DE INICIALIZACIÓN ---
+        function init() {
+            createProgressBoard();
+            createModals();
+            setupEventListeners();
+            updateProgressVisuals();
+        }
+
+        function createProgressBoard() {
+            const isMobile = window.innerWidth < 768;
+            const container = isMobile ? document.getElementById('path-container') : document.getElementById('spiral');
+
+            if (isMobile) {
+                topics.forEach((topic, index) => {
+                    const stepDiv = document.createElement('div');
+                    stepDiv.className = `path-step ${index > 0 ? 'locked' : ''}`;
+                    stepDiv.dataset.index = index;
+                    stepDiv.innerHTML = `
+                        <i class="fas ${topic.icon}"></i>
+                        <div class="path-step-content">
+                            <div class="label">${topic.label}</div>
+                            <div class="sub">${topic.sub}</div>
+                        </div>
+                    `;
+                    container.appendChild(stepDiv);
+                });
+            } else {
+                // Crear espiral cuadrada
+                const size = 500;
+                const stepSize = 80;
+                const spacing = 100;
+                let x = size / 2 - stepSize / 2;
+                let y = size / 2 - stepSize / 2;
+                let direction = 0; // 0: right, 1: down, 2: left, 3: up
+                let stepsToTake = 1;
+                let stepsTaken = 0;
+                let increment = 1;
+
+                topics.forEach((topic, index) => {
+                    const stepDiv = document.createElement('div');
+                    stepDiv.className = `spiral-step ${index > 0 ? 'locked' : ''}`;
+                    stepDiv.dataset.index = index;
+                    stepDiv.style.left = `${x}px`;
+                    stepDiv.style.top = `${y}px`;
+                    stepDiv.innerHTML = `
+                        <i class="fas ${topic.icon}"></i>
+                        <div class="label">${topic.label}</div>
+                        <div class="sub">${topic.sub}</div>
+                    `;
+                    container.appendChild(stepDiv);
+
+                    // Lógica para la espiral
+                    stepsTaken++;
+                    if (stepsTaken === stepsToTake) {
+                        direction = (direction + 1) % 4;
+                        stepsTaken = 0;
+                        if (direction === 0 || direction === 2) { // right or left
+                            increment++;
+                        }
+                        stepsToTake = increment;
+                    }
+
+                    switch (direction) {
+                        case 0: x += spacing; break; // right
+                        case 1: y += spacing; break; // down
+                        case 2: x -= spacing; break; // left
+                        case 3: y -= spacing; break; // up
+                    }
+                });
+            }
+        }
+
+        function createModals() {
+            const modalsContainer = document.getElementById('modals-container');
+            topics.forEach((topic, index) => {
+                const content = modalContents[topic.id];
+                if (!content) return;
+
+                const modalDiv = document.createElement('div');
+                modalDiv.id = `modal-${topic.id}`;
+                modalDiv.className = 'modal';
+                modalDiv.innerHTML = `
+                    <div class="modal-content">
+                        <span class="close">&times;</span>
+                        <div class="modal-header">
+                            <h2>${content.title}</h2>
+                        </div>
+                        <div class="modal-body">
+                            <ul>
+                                ${content.content.map(item => `<li>${item}</li>`).join('')}
+                            </ul>
+                        </div>
+                        <div class="modal-footer">
+                            ${index < topics.length - 1 ? `<button class="btn btn-primary next-step">➡️ Siguiente</button>` : ''}
+                        </div>
+                    </div>
+                `;
+                modalsContainer.appendChild(modalDiv);
+            });
+        }
+
+        function setupEventListeners() {
+            // Eventos para los pasos del tablero
+            document.querySelectorAll('#spiral-container .spiral-step, #path-container .path-step').forEach(step => {
+                step.addEventListener('click', function() {
+                    const index = parseInt(this.dataset.index);
+                    if (unlockedSteps.includes(index)) {
+                        openModal(index);
+                    }
+                });
+            });
+
+            // Eventos para los modales
+            document.querySelectorAll('.modal .close').forEach(closeBtn => {
+                closeBtn.addEventListener('click', function() {
+                    this.closest('.modal').style.display = 'none';
+                    resetBoardVisuals();
+                });
+            });
+
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        this.style.display = 'none';
+                        resetBoardVisuals();
+                    }
+                });
+            });
+
+            // Eventos para los botones "Siguiente"
+            document.querySelectorAll('.next-step').forEach((btn, index) => {
+                btn.addEventListener('click', function() {
+                    const modal = this.closest('.modal');
+                    modal.style.display = 'none';
+                    resetBoardVisuals();
+                    
+                    // Marcar el paso actual como visitado
+                    if (!visitedSteps.includes(currentStepIndex)) {
+                        visitedSteps.push(currentStepIndex);
+                    }
+                    
+                    // Avanzar al siguiente paso
+                    const nextIndex = currentStepIndex + 1;
+                    currentStepIndex = nextIndex;
+                    
+                    // Desbloquear el siguiente paso si no lo está
+                    if (!unlockedSteps.includes(nextIndex)) {
+                        unlockedSteps.push(nextIndex);
+                    }
+                    
+                    updateProgressVisuals();
+                    
+                    // Si es el último paso, mostrar el contrato
+                    if (nextIndex === topics.length - 1) {
+                        document.getElementById('contract-section').style.display = 'block';
+                        setTimeout(() => {
+                            document.getElementById('contract-section').scrollIntoView({ behavior: 'smooth' });
+                        }, 500);
+                    }
+                });
+            });
+
+            // Eventos para el contrato
+            document.getElementById('clear-signature').addEventListener('click', clearSignature);
+            document.getElementById('contract-form').addEventListener('submit', generateContract);
+            document.getElementById('print-contract').addEventListener('click', printContract);
+
+            // Inicializar el canvas de firma
+            const canvas = document.getElementById('signature-canvas');
+            signaturePad = new SignaturePad(canvas, {
+                backgroundColor: 'rgb(255,255,255)'
+            });
+
+            // Ajustar el canvas al tamaño real
+            function resizeCanvas() {
+                const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                canvas.width = canvas.offsetWidth * ratio;
+                canvas.height = canvas.offsetHeight * ratio;
+                canvas.getContext("2d").scale(ratio, ratio);
+                signaturePad.clear(); // De lo contrario, las firmas anteriores se borrarían al cambiar el tamaño
+            }
+            window.addEventListener("resize", resizeCanvas);
+            resizeCanvas();
+        }
+
+        // --- FUNCIONES DE INTERACCIÓN ---
+        function openModal(index) {
+            const topicId = topics[index].id;
+            const modal = document.getElementById(`modal-${topicId}`);
+            if (modal) {
+                modal.style.display = 'block';
+                highlightStep(index);
+            }
+        }
+
+        function highlightStep(index) {
+            // Atenuar todos los pasos
+            document.querySelectorAll('.spiral-step, .path-step').forEach(step => {
+                step.style.filter = 'blur(2px) opacity(0.7)';
+                step.style.pointerEvents = 'none';
+            });
+            // Iluminar el paso seleccionado
+            const activeStep = document.querySelector(`[data-index="${index}"]`);
+            if (activeStep) {
+                activeStep.style.filter = 'none';
+                activeStep.style.pointerEvents = 'auto';
+                activeStep.classList.add('active');
+            }
+        }
+
+        function resetBoardVisuals() {
+            document.querySelectorAll('.spiral-step, .path-step').forEach(step => {
+                step.style.filter = 'none';
+                step.style.pointerEvents = 'auto';
+                step.classList.remove('active');
+            });
+        }
+
+        function updateProgressVisuals() {
+            const steps = document.querySelectorAll('.spiral-step, .path-step');
+            
+            steps.forEach((step, index) => {
+                step.classList.remove('locked', 'visited', 'active');
+                
+                if (index < currentStepIndex) {
+                    // Paso ya transitado
+                    step.classList.add('visited');
+                } else if (index === currentStepIndex) {
+                    // Paso actual
+                    step.classList.add('active');
+                } else if (index > currentStepIndex) {
+                    // Paso futuro
+                    if (unlockedSteps.includes(index)) {
+                        // Desbloqueado pero no visitado
+                    } else {
+                        step.classList.add('locked');
+                    }
+                }
+            });
+        }
+
+        // --- FUNCIONES DEL CONTRATO ---
+        function clearSignature() {
+            signaturePad.clear();
+            signatureDataUrl = null;
+        }
+
+        function generateContract(e) {
+            e.preventDefault();
+            if (signaturePad.isEmpty()) {
+                alert("Por favor, proporcione su firma.");
+                return;
+            }
+
+            signatureDataUrl = signaturePad.toDataURL(); // Guarda la firma como PNG
+
+            const name = document.getElementById('student-name').value;
+            const id = document.getElementById('student-id').value || 'N/A';
+            const group = document.getElementById('student-group').value;
+            const date = new Date().toLocaleDateString('es-ES');
+
+            const contractText = `
+CONTRATO DE COMPROMISO
+
+Alumno: ${name}
+Matrícula: ${id}
+Grado y Grupo: ${group}
+Fecha: ${date}
+
+COMPROMISO:
+
+Como estudiante de la Licenciatura en Biomedicina de la Universidad Autónoma de Sinaloa, me comprometo a:
+
+1.  Asistir puntual y regularmente a las clases de la Unidad de Aprendizaje "${courseData.name}" (Clave: ${courseData.clave}), del ${courseData.ubicacion}.
+2.  Participar activamente en todas las actividades presenciales y virtuales propuestas durante el semestre.
+3.  Realizar con responsabilidad y ética las actividades de estudio independiente, prácticas de laboratorio y proyectos.
+4.  Respetar las normas de evaluación establecidas, las cuales son:
+    PARCIAL:
+    ${evaluationData.parcial.map(item => `    - ${item.item}: ${item.porcentaje}`).join('\n')}
+    FINAL:
+    ${evaluationData.final.map(item => `    - ${item.item}: ${item.porcentaje}`).join('\n')}
+5.  Consultar oportunamente al docente cualquier duda sobre los contenidos, actividades o evaluaciones.
+6.  Mantener un comportamiento acorde a los principios éticos y académicos de la institución.
+7.  Contribuir al buen ambiente de aprendizaje en el aula y en los espacios colaborativos.
+
+Competencia del curso:
+${courseData.competencia}
+
+Unidades de aprendizaje relacionadas:
+${courseData.unidades_relacionadas.join(', ')}
+
+Firma del Alumno:
+            `;
+
+            document.getElementById('contract-text').textContent = contractText;
+            document.getElementById('contract-signature').innerHTML = `<img src="${signatureDataUrl}" alt="Firma del Alumno">`;
+            document.getElementById('contract-preview').style.display = 'block';
+            document.getElementById('contract-preview').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function printContract() {
+            const printFrame = document.getElementById('print-frame');
+            const contractContent = document.getElementById('contract-preview').innerHTML;
+
+            const printDoc = printFrame.contentDocument || printFrame.contentWindow.document;
+            printDoc.open();
+            printDoc.write(`
+                <html>
+                    <head>
+                        <title>Contrato de Compromiso - ${courseData.name}</title>
+                        <style>
+                            body { font-family: Georgia, serif; margin: 20px; }
+                            h1, h2, h3 { color: #1a5d1a; }
+                            pre { white-space: pre-wrap; line-height: 1.8; }
+                            img { max-width: 300px; border-bottom: 1px solid black; }
+                        </style>
+                    </head>
+                    <body>
+                        ${contractContent}
+                    </body>
+                </html>
+            `);
+            printDoc.close();
+            printFrame.contentWindow.focus();
+            printFrame.contentWindow.print();
+        }
+
+        // --- INICIALIZAR LA APLICACIÓN ---
+        window.onload = init;
+    </script>
+    <!-- SignaturePad Library -->
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+</body>
+</html>
