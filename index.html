@@ -371,7 +371,7 @@
             font-weight: bold;
         }
 
-        #contract-form input, #contract-form select {
+        #contract-form input, #contract-form select, #contract-form textarea {
             padding: 8px;
             margin-top: 5px;
             border: 1px solid #ccc;
@@ -525,11 +525,7 @@
                 <input type="text" id="student-id">
 
                 <label for="student-group">Grado y Grupo *</label>
-                <select id="student-group" required>
-                    <option value="">Seleccionar...</option>
-                    <option value="9°A">9°A</option>
-                    <option value="9°B">9°B</option>
-                </select>
+                <input type="text" id="student-group" placeholder="Ej. 9°A, 9°B" required>
 
                 <label>
                     <input type="checkbox" id="accept-terms" required>
@@ -573,7 +569,8 @@
                 creditos: 10
             },
             competencia: "El alumno analiza, evalúa y aplica de manera crítica y multidisciplinaria los fundamentos de la patología clínica en el diagnóstico y pronóstico de una variedad de enfermedades, incluyendo procesos inflamatorios, neoplásicos e infecciosos, integrando conocimientos de bioquímica, fisiología, inmunología y hematología. Además, desarrolla habilidades prácticas a través de la realización de técnicas de laboratorio, así como el diagnóstico de enfermedades mediante la interpretación de datos clínicos.",
-            unidades_relacionadas: ["Morfofisiología", "Bioquímica", "Inmunología Básica y Aplicada", "Hematología"]
+            unidades_relacionadas: ["Morfofisiología", "Bioquímica", "Inmunología Básica y Aplicada", "Hematología"],
+            docente: "M.C. Adriana Alicia Barrios Rodríguez"
         };
 
         const evaluationData = {
@@ -1069,6 +1066,14 @@
             const date = new Date().toLocaleDateString('es-ES');
 
             const contractText = `
+UNIVERSIDAD AUTÓNOMA DE SINALOA
+FACULTAD DE BIOLOGÍA
+LICENCIATURA EN BIOMEDICINA
+
+UNIDAD DE APRENDIZAJE: ${courseData.name}
+CLAVE: ${courseData.clave}
+DOCENTE A CARGO: ${courseData.docente}
+
 CONTRATO DE COMPROMISO
 
 Alumno: ${name}
@@ -1118,13 +1123,43 @@ Firma del Alumno:
                     <head>
                         <title>Contrato de Compromiso - ${courseData.name}</title>
                         <style>
-                            body { font-family: Georgia, serif; margin: 20px; }
-                            h1, h2, h3 { color: #1a5d1a; }
-                            pre { white-space: pre-wrap; line-height: 1.8; }
-                            img { max-width: 300px; border-bottom: 1px solid black; }
+                            body { 
+                                font-family: Georgia, serif; 
+                                margin: 20px; 
+                                line-height: 1.6;
+                                color: #333;
+                            }
+                            h1, h2, h3 { 
+                                color: #1a5d1a; 
+                                text-align: center;
+                            }
+                            pre { 
+                                white-space: pre-wrap; 
+                                line-height: 1.8; 
+                                font-family: Georgia, serif;
+                            }
+                            img { 
+                                max-width: 300px; 
+                                border-bottom: 1px solid black; 
+                                margin-top: 20px;
+                            }
+                            .header {
+                                text-align: center;
+                                margin-bottom: 20px;
+                                border-bottom: 2px solid #1a5d1a;
+                                padding-bottom: 10px;
+                            }
                         </style>
                     </head>
                     <body>
+                        <div class="header">
+                            <h1>UNIVERSIDAD AUTÓNOMA DE SINALOA</h1>
+                            <h2>FACULTAD DE BIOLOGÍA</h2>
+                            <h3>LICENCIATURA EN BIOMEDICINA</h3>
+                            <p><strong>UNIDAD DE APRENDIZAJE:</strong> ${courseData.name}</p>
+                            <p><strong>CLAVE:</strong> ${courseData.clave}</p>
+                            <p><strong>DOCENTE A CARGO:</strong> ${courseData.docente}</p>
+                        </div>
                         ${contractContent}
                     </body>
                 </html>
