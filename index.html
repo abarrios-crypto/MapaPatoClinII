@@ -386,13 +386,16 @@
             margin-top: 15px;
             border: 1px solid #ccc;
             border-radius: 4px;
+            position: relative;
+            touch-action: none; /* Previene el desplazamiento mientras se firma */
         }
 
-        #signature-pad canvas {
+        #signature-canvas {
             width: 100%;
             max-width: 400px;
             height: 120px;
             cursor: crosshair;
+            display: block;
         }
 
         .signature-buttons {
@@ -534,7 +537,7 @@
 
                 <label>Firma *</label>
                 <div id="signature-pad">
-                    <canvas id="signature-canvas" width="400" height="120"></canvas>
+                    <canvas id="signature-canvas"></canvas>
                 </div>
                 <div class="signature-buttons">
                     <button type="button" class="btn btn-secondary" id="clear-signature">Borrar firma</button>
@@ -810,6 +813,7 @@
             createModals();
             setupEventListeners();
             updateProgressVisuals();
+            setupSignaturePad(); // Inicializar el pad de firma
         }
 
         function createProgressBoard() {
@@ -970,23 +974,6 @@
             document.getElementById('clear-signature').addEventListener('click', clearSignature);
             document.getElementById('contract-form').addEventListener('submit', generateContract);
             document.getElementById('print-contract').addEventListener('click', printContract);
-
-            // Inicializar el canvas de firma
-            const canvas = document.getElementById('signature-canvas');
-            signaturePad = new SignaturePad(canvas, {
-                backgroundColor: 'rgb(255,255,255)'
-            });
-
-            // Ajustar el canvas al tamaño real
-            function resizeCanvas() {
-                const ratio = Math.max(window.devicePixelRatio || 1, 1);
-                canvas.width = canvas.offsetWidth * ratio;
-                canvas.height = canvas.offsetHeight * ratio;
-                canvas.getContext("2d").scale(ratio, ratio);
-                signaturePad.clear(); // De lo contrario, las firmas anteriores se borrarían al cambiar el tamaño
-            }
-            window.addEventListener("resize", resizeCanvas);
-            resizeCanvas();
         }
 
         // --- FUNCIONES DE INTERACCIÓN ---
@@ -1167,6 +1154,49 @@ Firma del Alumno:
             printDoc.close();
             printFrame.contentWindow.focus();
             printFrame.contentWindow.print();
+        }
+
+        // --- FUNCIONALIDAD DE FIRMA MEJORADA ---
+        function setupSignaturePad() {
+            const canvas = document.getElementById('signature-canvas');
+            const container = document.getElementById('signature-pad');
+            
+            // Establecer dimensiones fijas
+            canvas.width = 400;
+            canvas.height = 120;
+            
+            // Inicializar SignaturePad
+            signaturePad = new SignaturePad(canvas, {
+                minWidth: 1,
+                maxWidth: 2,
+                penColor: "rgb(0, 0, 0)",
+                backgroundColor: "rgba(255, 255, 255, 0)" // Fondo transparente
+            });
+            
+            // Manejar el redimensionamiento
+            function resizeCanvas() {
+                const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                const rect = container.getBoundingClientRect();
+                
+                // Establecer dimensiones CSS
+                canvas.style.width = rect.width + 'px';
+                canvas.style.height = '120px';
+                
+                // Establecer dimensiones reales del canvas
+                canvas.width = rect.width * ratio;
+                canvas.height = 120 * ratio;
+                
+                // Escalar el contexto
+                const ctx = canvas.getContext("2d");
+                ctx.scale(ratio, ratio);
+                
+                // Limpiar el pad de firma
+                signaturePad.clear();
+            }
+            
+            // Redimensionar al cargar y al cambiar el tamaño de la ventana
+            window.addEventListener("resize", resizeCanvas);
+            resizeCanvas();
         }
 
         // --- INICIALIZAR LA APLICACIÓN ---
